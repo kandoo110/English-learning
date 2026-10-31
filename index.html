@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Magic Alphabet Cubes - Learn English Beautifully</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            overflow: hidden !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* نوار بالای صفحه */
+        #top-vault {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 110px;
+            background: linear-gradient(180deg, #4a3000, #8a5a00);
+            border-bottom: 5px solid #ffd700;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 0;
+            z-index: 100;
+        }
+
+        .sponsor-badge {
+            background: linear-gradient(90deg, #ff007f, #7928ca);
+            color: #ffffff;
+            padding: 3px 16px;
+            border-radius: 15px;
+            font-size: 0.78rem;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+
+        .trapdoor {
+            position: relative;
+            width: 130px;
+            height: 50px;
+            background: #2b1a00;
+            border: 3px solid #d4af37;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 10px #000;
+            cursor: pointer;
+        }
+
+        .lock-icon {
+            font-size: 28px;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
+        }
+
+        .lock-icon.pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        #lock-popup {
+            position: absolute;
+            top: 120px;
+            background: #ff4757;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 16px;
+            font-size: 0.82rem;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.5);
+            z-index: 300;
+            display: none;
+            text-align: center;
+            width: 85%;
+            max-width: 320px;
+            line-height: 1.4;
+        }
+
+        /* شمارنده حروف جابه‌جا شده تا با پنل تداخل نداشته باشد */
+        #score-badge {
+            position: absolute;
+            top: 118px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #2c3e50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 90;
+            font-size: 0.75rem;
+        }
+
+        /* پنل کارهای خوب پایین‌تر آمده و دارای کادر نئونی متحرک است */
+        #task-panel {
+            position: absolute;
+            top: 148px;
+            width: 90%;
+            max-width: 340px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 18px;
+            padding: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            text-align: center;
+            z-index: 200;
+            transition: opacity 0.3s, transform 0.3s;
+            border: 3px solid #ff007f;
+            animation: neonDance 3s linear infinite;
+        }
+
+        #task-panel.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-15px);
+        }
+
+        .task-title {
+            color: #2c3e50;
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .task-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 8px 4px;
+            font-size: 0.72rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .task-btn .emoji { font-size: 20px; }
+
+        .task-btn.completed {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            transform: scale(0.96);
+        }
+
+        .progress-bar {
+            margin-top: 8px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff9a9e, #fecfef);
+            transition: width 0.3s;
+        }
+
+        #key-container {
+            position: absolute;
+            bottom: 130px;
+            z-index: 300;
+            display: none;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .golden-key {
+            font-size: 50px;
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25));
+        }
+
+        #cube-viewport {
+            position: absolute;
+            top: 42%;
+            left: 50%;
+            width: 155px;
+            height: 155px;
+            transform: translate(-50%, -50%);
+            perspective: 700px;
+            z-index: 50;
+            display: none;
+        }
+
+        .cube-3d {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 155px;
+            height: 155px;
+            border: 4px solid #ffffff;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: white;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.2);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            backface-visibility: visible;
+        }
+
+        .face-front  { transform: rotateY(0deg) translateZ(77px); }
+        .face-back   { transform: rotateY(180deg) translateZ(77px); }
+        .face-right  { transform: rotateY(90deg) translateZ(77px); }
+        .face-left   { transform: rotateY(-90deg) translateZ(77px); }
+        .face-top    { transform: rotateX(90deg) translateZ(77px); }
+        .face-bottom { transform: rotateX(-90deg) translateZ(77px); }
+
+        .face-letter { font-size: 80px; font-weight: bold; }
+        .face-emoji { font-size: 40px; margin-bottom: 2px; }
+        .face-word { font-size: 16px; font-weight: bold; }
+
+        /* آلبوم حروف با حاشیه نئونی متحرک */
+        #alphabet-album {
+            position: absolute;
+            bottom: 60px;
+            width: 96%;
+            max-width: 390px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            z-index: 180;
+            border: 3px solid #ff007f;
+            animation: neonDance 3s linear infinite;
+        }
+
+        @keyframes neonDance {
+            0% { border-color: #ff007f; box-shadow: 0 0 10px #ff007f; }
+            33% { border-color: #00f2fe; box-shadow: 0 0 10px #00f2fe; }
+            66% { border-color: #4facfe; box-shadow: 0 0 10px #4facfe; }
+            100% { border-color: #ff007f; box-shadow: 0 0 10px #ff007f; }
+        }
+
+        .album-slot {
+            width: 21px;
+            height: 22px;
+            border-radius: 5px;
+            background: #e0e6ed;
+            color: #808e9b;
+            font-size: 0.65rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .album-slot.unlocked {
+            background: #2ecc71;
+            color: white;
+            box-shadow: 0 2px 5px rgba(46, 204, 113, 0.4);
+            cursor: pointer;
+            transform: scale(1.05);
+        }
+
+        #bottom-bar {
+            position: absolute;
+            bottom: 8px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding: 0 10px;
+            z-index: 200;
+        }
+
+        .action-btn {
+            background: #ffffff;
+            border: none;
+            border-radius: 30px;
+            padding: 7px 12px;
+            font-size: 0.72rem;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .action-btn:active { transform: scale(0.95); }
+
+        .hint-text {
+            position: absolute;
+            bottom: 155px;
+            background: rgba(0,0,0,0.75);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 0.73rem;
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .hint-text.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="top-vault">
+        <div class="sponsor-badge">✨ Learn English Beautifully ✨</div>
+        <div class="trapdoor" id="trapdoor">
+            <div class="lock-icon pulse" id="lock">🔒</div>
+        </div>
+    </div>
+
+    <div id="lock-popup">Complete 3 good deeds first to unlock the magic key! 😊</div>
+
+    <div id="score-badge">Unlocked: <span id="unlocked-count">0</span> / 26</div>
+
+    <div id="task-panel">
+        <div class="task-title">Complete 3 Good Deeds to Get the Key! ⭐</div>
+        <div class="tasks-grid" id="tasks-grid"></div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+
+    <div id="key-container">
+        <div class="golden-key">🔑</div>
+    </div>
+
+    <div id="cube-viewport">
+        <div class="cube-3d" id="cube">
+            <div class="cube-face face-front" id="f-front"></div>
+            <div class="cube-face face-back" id="f-back"></div>
+            <div class="cube-face face-right" id="f-right"></div>
+            <div class="cube-face face-left" id="f-left"></div>
+            <div class="cube-face face-top" id="f-top"></div>
+            <div class="cube-face face-bottom" id="f-bottom"></div>
+        </div>
+    </div>
+
+    <div class="hint-text" id="hint">Rotate the cube with your finger 🔄</div>
+
+    <div id="alphabet-album"></div>
+
+    <div id="bottom-bar">
+        <button class="action-btn" id="speak-btn">🔊 Pronounce</button>
+        <button class="action-btn" id="next-task-btn">✨ New Key</button>
+        <button class="action-btn" id="info-btn">ℹ️ Creator</button>
+    </div>
+
+    <script>
+        const ALPHABET_DATA_EN = [
+            { letter: 'A', bg: '#FF5733', words: [{w:'Apple', e:'🍎'}, {w:'Ant', e:'🐜'}, {w:'Airplane', e:'✈️'}, {w:'Arm', e:'💪'}] },
+            { letter: 'B', bg: '#2ECC71', words: [{w:'Ball', e:'⚽'}, {w:'Banana', e:'🍌'}, {w:'Bear', e:'🐻'}, {w:'Bird', e:'🐦'}] },
+            { letter: 'C', bg: '#3498DB', words: [{w:'Cat', e:'🐱'}, {w:'Car', e:'🚗'}, {w:'Cake', e:'🎂'}, {w:'Cup', e:'☕'}] },
+            { letter: 'D', bg: '#E74C3C', words: [{w:'Dog', e:'🐶'}, {w:'Duck', e:'🦆'}, {w:'Door', e:'🚪'}, {w:'Drum', e:'🥁'}] },
+            { letter: 'E', bg: '#F39C12', words: [{w:'Elephant', e:'🐘'}, {w:'Egg', e:'🥚'}, {w:'Eye', e:'👁️'}, {w:'Engine', e:'🚂'}] },
+            { letter: 'F', bg: '#9B59B6', words: [{w:'Fish', e:'🐟'}, {w:'Frog', e:'🐸'}, {w:'Fan', e:'🌀'}, {w:'Fire', e:'🔥'}] },
+            { letter: 'G', bg: '#1ABC9C', words: [{w:'Grape', e:'🍇'}, {w:'Gift', e:'🎁'}, {w:'Goat', e:'🐐'}, {w:'Guitar', e:'🎸'}] },
+            { letter: 'H', bg: '#27AE60', words: [{w:'Hat', e:'🎩'}, {w:'House', e:'🏠'}, {w:'Horse', e:'🐴'}, {w:'Heart', e:'❤️'}] },
+            { letter: 'I', bg: '#2980B9', words: [{w:'Ice cream', e:'🍦'}, {w:'Igloo', e:'❄️'}, {w:'Island', e:'🏝️'}, {w:'Iron', e:'🦾'}] },
+            { letter: 'J', bg: '#D35400', words: [{w:'Jug', e:'🏺'}, {w:'Jet', e:'✈️'}, {w:'Jacket', e:'🧥'}, {w:'Jam', e:'🍯'}] },
+            { letter: 'K', bg: '#8E44AD', words: [{w:'Kite', e:'🪁'}, {w:'Kangaroo', e:'🦘'}, {w:'Key', e:'🔑'}, {w:'King', e:'👑'}] },
+            { letter: 'L', bg: '#C0392B', words: [{w:'Lion', e:'🦁'}, {w:'Leaf', e:'🍃'}, {w:'Lamp', e:'💡'}, {w:'Lemon', e:'🍋'}] },
+            { letter: 'M', bg: '#16A085', words: [{w:'Monkey', e:'🐒'}, {w:'Moon', e:'🌙'}, {w:'Mouse', e:'🐭'}, {w:'Milk', e:'🥛'}] },
+            { letter: 'N', bg: '#F1C40F', words: [{w:'Nest', e:'🪹'}, {w:'Nut', e:'🥜'}, {w:'Net', e:'🥅'}, {w:'Night', e:'🌌'}] },
+            { letter: 'O', bg: '#34495E', words: [{w:'Owl', e:'🦉'}, {w:'Orange', e:'🍊'}, {w:'Octopus', e:'🐙'}, {w:'Ostrich', e:'🐦'}] },
+            { letter: 'P', bg: '#FF7F50', words: [{w:'Penguin', e:'🐧'}, {w:'Pencil', e:'✏️'}, {w:'Pig', e:'🐷'}, {w:'Pizza', e:'🍕'}] },
+            { letter: 'Q', bg: '#6A5ACD', words: [{w:'Queen', e:'👑'}, {w:'Quilt', e:'🛏️'}, {w:'Question', e:'❓'}, {w:'Quail', e:'🐦'}] },
+            { letter: 'R', bg: '#00CECB', words: [{w:'Rabbit', e:'🐰'}, {w:'Ring', e:'💍'}, {w:'Robot', e:'🤖'}, {w:'Rose', e:'🌹'}] },
+            { letter: 'S', bg: '#E84393', words: [{w:'Sun', e:'☀️'}, {w:'Star', e:'⭐'}, {w:'Snake', e:'🐍'}, {w:'Ship', e:'🚢'}] },
+            { letter: 'T', bg: '#00B894', words: [{w:'Tree', e:'🌳'}, {w:'Train', e:'🚂'}, {w:'Tiger', e:'🐯'}, {w:'Tent', e:'⛺'}] },
+            { letter: 'U', bg: '#6C5CE7', words: [{w:'Umbrella', e:'☂️'}, {w:'Unicorn', e:'🦄'}, {w:'Urn', e:'🏺'}, {w:'Uniform', e:'👕'}] },
+            { letter: 'V', bg: '#FDCB6E', words: [{w:'Violin', e:'🎻'}, {w:'Vase', e:'🏺'}, {w:'Van', e:'🚐'}, {w:'Volcano', e:'🌋'}] },
+            { letter: 'W', bg: '#E17055', words: [{w:'Watch', e:'⌚'}, {w:'Water', e:'💧'}, {w:'Whale', e:'🐳'}, {w:'Window', e:'🪟'}] },
+            { letter: 'X', bg: '#0984E3', words: [{w:'Xylophone', e:'🎹'}, {w:'X-ray', e:'🩻'}, {w:'Xmas tree', e:'🎄'}, {w:'Xerus', e:'🐿️'}] },
+            { letter: 'Y', bg: '#D63031', words: [{w:'Yoyo', e:'🪀'}, {w:'Yak', e:'🐃'}, {w:'Yogurt', e:'🥛'}, {w:'Yacht', e:'⛵'}] },
+            { letter: 'Z', bg: '#00CEC9', words: [{w:'Zebra', e:'🦓'}, {w:'Zoo', e:'🦁'}, {w:'Zip', e:'🧥'}, {w:'Zero', e:'0️⃣'}] }
+        ];
+
+        const GOOD_DEEDS = [
+            { text: 'Organize your books', emoji: '📚' },
+            { text: 'Smile at others', emoji: '😊' },
+            { text: 'Put trash in the bin', emoji: '🗑️' },
+            { text: 'Drink a glass of water', emoji: '🥛' },
+            { text: 'Help parents at home', emoji: '❤️' },
+            { text: 'Eat fruits and veggies', emoji: '🍎' },
+            { text: 'Say "Please" & "Thank you"', emoji: '😊' },
+            { text: 'Water the house plants', emoji: '🪴' },
+            { text: 'Clean up your room', emoji: '🧸' },
+            { text: 'Feed the little birds', emoji: '🐦' }
+        ];
+
+        let activeData = null;
+        let currentDisplayWords = [];
+        let completedTasksCount = 0;
+        const requiredTasks = 3;
+        let unlockedLetters = JSON.parse(localStorage.getItem('sevin_en_unlocked') || '[]');
+        let audioUnlocked = false;
+
+        function unlockAudioEngine() {
+            if (audioUnlocked) return;
+            audioUnlocked = true;
+            try {
+                const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+                silentAudio.play().catch(() => {});
+            } catch(e) {}
+        }
+
+        window.addEventListener('pointerdown', unlockAudioEngine, { once: true });
+        window.addEventListener('touchstart', unlockAudioEngine, { once: true });
+
+        function renderAlphabetAlbum() {
+            const container = document.getElementById('alphabet-album');
+            container.innerHTML = '';
+
+            ALPHABET_DATA_EN.forEach(item => {
+                const slot = document.createElement('div');
+                const isUnlocked = unlockedLetters.includes(item.letter);
+                slot.className = `album-slot ${isUnlocked ? 'unlocked' : ''}`;
+                slot.innerText = item.letter;
+
+                if (isUnlocked) {
+                    slot.onclick = () => {
+                        unlockAudioEngine();
+                        document.getElementById('task-panel').classList.add('hidden');
+                        renderCubeData(item);
+                    };
+                }
+                container.appendChild(slot);
+            });
+        }
+
+        function updateUnlockedUI() {
+            document.getElementById('unlocked-count').innerText = unlockedLetters.length;
+            renderAlphabetAlbum();
+        }
+
+        function setupLockInteraction() {
+            const trapdoor = document.getElementById('trapdoor');
+            const popup = document.getElementById('lock-popup');
+            let popupTimer;
+
+            trapdoor.onclick = () => {
+                unlockAudioEngine();
+                popup.style.display = 'block';
+                clearTimeout(popupTimer);
+                popupTimer = setTimeout(() => { popup.style.display = 'none'; }, 3000);
+            };
+        }
+
+        function loadTaskPanel() {
+            const grid = document.getElementById('tasks-grid');
+            grid.innerHTML = '';
+            completedTasksCount = 0;
+            updateProgress();
+
+            const shuffled = [...GOOD_DEEDS].sort(() => 0.5 - Math.random()).slice(0, 4);
+
+            shuffled.forEach(task => {
+                const btn = document.createElement('button');
+                btn.className = 'task-btn';
+                btn.innerHTML = `<span class="emoji">${task.emoji}</span><span>${task.text}</span>`;
+                btn.onclick = () => {
+                    unlockAudioEngine();
+                    if (btn.classList.contains('completed')) return;
+                    btn.classList.add('completed');
+                    completedTasksCount++;
+                    updateProgress();
+
+                    if (completedTasksCount >= requiredTasks) {
+                        setTimeout(unlockKey, 400);
+                    }
+                };
+                grid.appendChild(btn);
+            });
+
+            document.getElementById('task-panel').classList.remove('hidden');
+        }
+
+        function updateProgress() {
+            const pct = Math.min(100, (completedTasksCount / requiredTasks) * 100);
+            document.getElementById('progress-fill').style.width = pct + '%';
+        }
+
+        function unlockKey() {
+            document.getElementById('task-panel').classList.add('hidden');
+            document.getElementById('lock-popup').style.display = 'none';
+            const keyContainer = document.getElementById('key-container');
+            keyContainer.style.display = 'block';
+            keyContainer.style.left = (window.innerWidth / 2 - 25) + 'px';
+            keyContainer.style.top = (window.innerHeight - 190) + 'px';
+            setupKeyDrag();
+        }
+
+        function setupKeyDrag() {
+            const key = document.getElementById('key-container');
+            const trapdoor = document.getElementById('trapdoor');
+            let isDragging = false;
+            let startX, startY, origX, origY;
+
+            function onPointerDown(e) {
+                unlockAudioEngine();
+                isDragging = true;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                startX = clientX;
+                startY = clientY;
+                origX = key.offsetLeft;
+                origY = key.offsetTop;
+            }
+
+            function onPointerMove(e) {
+                if (!isDragging) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const deltaX = clientX - startX;
+                const deltaY = clientY - startY;
+
+                key.style.left = (origX + deltaX) + 'px';
+                key.style.top = (origY + deltaY) + 'px';
+
+                const rectKey = key.getBoundingClientRect();
+                const rectLock = trapdoor.getBoundingClientRect();
+
+                if (
+                    rectKey.left < rectLock.right &&
+                    rectKey.right > rectLock.left &&
+                    rectKey.top < rectLock.bottom &&
+                    rectKey.bottom > rectLock.top
+                ) {
+                    isDragging = false;
+                    key.style.display = 'none';
+                    openVaultAndDropCube();
+                }
+            }
+
+            function onPointerUp() { isDragging = false; }
+
+            key.onmousedown = onPointerDown;
+            key.ontouchstart = onPointerDown;
+            window.onmousemove = onPointerMove;
+            window.ontouchmove = onPointerMove;
+            window.onmouseup = onPointerUp;
+            window.ontouchend = onPointerUp;
+        }
+
+        function openVaultAndDropCube() {
+            const lock = document.getElementById('lock');
+            lock.innerText = '🔓';
+            lock.classList.remove('pulse');
+
+            setTimeout(() => {
+                let availableData = ALPHABET_DATA_EN.filter(item => !unlockedLetters.includes(item.letter));
+
+                if (availableData.length === 0) {
+                    alert('Congratulations Champion! 🎉\nYou have unlocked all English letters!\n❤️ Learn English Beautifully ❤️');
+                    unlockedLetters = [];
+                    localStorage.setItem('sevin_en_unlocked', JSON.stringify(unlockedLetters));
+                    availableData = ALPHABET_DATA_EN;
+                }
+
+                const randomData = availableData[Math.floor(Math.random() * availableData.length)];
+                
+                if (!unlockedLetters.includes(randomData.letter)) {
+                    unlockedLetters.push(randomData.letter);
+                    localStorage.setItem('sevin_en_unlocked', JSON.stringify(unlockedLetters));
+                }
+                updateUnlockedUI();
+
+                renderCubeData(randomData);
+
+                setTimeout(() => {
+                    lock.innerText = '🔒';
+                    lock.classList.add('pulse');
+                }, 1500);
+            }, 300);
+        }
+
+        function renderCubeData(data) {
+            activeData = data;
+            const viewport = document.getElementById('cube-viewport');
+            viewport.style.display = 'block';
+
+            const faces = document.querySelectorAll('.cube-face');
+            faces.forEach(f => f.style.backgroundColor = data.bg);
+
+            const shuffledWords = [...data.words].sort(() => 0.5 - Math.random()).slice(0, 4);
+            currentDisplayWords = shuffledWords;
+
+            document.getElementById('f-top').innerHTML = `<div class="face-letter">${data.letter}</div>`;
+            document.getElementById('f-bottom').innerHTML = `<div class="face-letter">${data.letter}</div>`;
+            
+            document.getElementById('f-front').innerHTML = `<div class="face-emoji">${shuffledWords[0].e}</div><div class="face-word">${shuffledWords[0].w}</div>`;
+            document.getElementById('f-back').innerHTML = `<div class="face-emoji">${shuffledWords[1].e}</div><div class="face-word">${shuffledWords[1].w}</div>`;
+            document.getElementById('f-right').innerHTML = `<div class="face-emoji">${shuffledWords[2].e}</div><div class="face-word">${shuffledWords[2].w}</div>`;
+            document.getElementById('f-left').innerHTML = `<div class="face-emoji">${shuffledWords[3].e}</div><div class="face-word">${shuffledWords[3].w}</div>`;
+
+            rotX = -20;
+            rotY = 20;
+            updateCubeRotation();
+
+            speakCurrentLetter();
+            document.getElementById('hint').classList.add('show');
+            setupCubeTouchRotate();
+        }
+
+        let rotX = -20;
+        let rotY = 20;
+
+        function updateCubeRotation() {
+            const cube = document.getElementById('cube');
+            cube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        }
+
+        function setupCubeTouchRotate() {
+            const viewport = document.getElementById('cube-viewport');
+            let isRotating = false;
+            let lastX, lastY;
+
+            function startRotate(e) {
+                unlockAudioEngine();
+                isRotating = true;
+                lastX = e.touches ? e.touches[0].clientX : e.clientX;
+                lastY = e.touches ? e.touches[0].clientY : e.clientY;
+            }
+
+            function doRotate(e) {
+                if (!isRotating) return;
+                const currentX = e.touches ? e.touches[0].clientX : e.clientX;
+                const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const deltaX = currentX - lastX;
+                const deltaY = currentY - lastY;
+
+                rotY += deltaX * 0.8;
+                rotX -= deltaY * 0.8;
+
+                updateCubeRotation();
+
+                lastX = currentX;
+                lastY = currentY;
+            }
+
+            function stopRotate() { isRotating = false; }
+
+            viewport.onmousedown = startRotate;
+            viewport.ontouchstart = startRotate;
+            window.addEventListener('mousemove', doRotate);
+            window.addEventListener('touchmove', doRotate);
+            window.addEventListener('mouseup', stopRotate);
+            window.addEventListener('touchend', stopRotate);
+        }
+
+        function speakCurrentLetter() {
+            unlockAudioEngine();
+            if (!activeData || currentDisplayWords.length === 0) return;
+            
+            const wordsText = currentDisplayWords.map(item => item.w).join(', ');
+            const fullPhrase = `Letter ${activeData.letter}. ${wordsText}`;
+
+            try {
+                const audio = new Audio();
+                audio.src = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(fullPhrase)}&tl=en&client=tw-ob`;
+                audio.play().catch(() => {
+                    speakFallback(fullPhrase);
+                });
+            } catch (e) {
+                speakFallback(fullPhrase);
+            }
+        }
+
+        function speakFallback(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        window.onload = () => {
+            updateUnlockedUI();
+            setupLockInteraction();
+            loadTaskPanel();
+
+            document.getElementById('speak-btn').onclick = () => {
+                unlockAudioEngine();
+                speakCurrentLetter();
+            };
+            
+            document.getElementById('next-task-btn').onclick = () => {
+                unlockAudioEngine();
+                document.getElementById('cube-viewport').style.display = 'none';
+                document.getElementById('hint').classList.remove('show');
+                loadTaskPanel();
+            };
+
+            document.getElementById('info-btn').onclick = () => {
+                unlockAudioEngine();
+                alert('طراح و مجری:\nt.me/ilwin01');
+            };
+        };
+    </script>
+</body>
+</html>
